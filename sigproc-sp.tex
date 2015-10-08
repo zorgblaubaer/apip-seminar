@@ -66,8 +66,16 @@ To delve deeper into these topics, section~\ref{sec:acc} explains what accountab
 %Explain what accountability and privacy actually are in the context of internet, motivate why anyone would need it (maybe case examples), who would need it and why no one has it.
 
 \section{Accountability}
+\cite{bootstrapping} \cite{mirkovic}
 \label{sec:acc}
 A lot of crime and chaos in the real world is being prevented because we have mechanisms in place that associate distinct persons or group of persons with actions, making everyone accountable for most of what they are doing. The Internet, as we have it today, is largely devoid of such mechanisms. Techniques like source IP spoofing can give everyone easy anonymity and enables for malicious actions such as denial of service attacks without having to fear any consequences.
+
+Naylor et al. \cite{apip} define three key properties that must be fulfilled in an accountable internet:
+\begin{itemize}
+\item For every packet there exists an entity that takes responsibility if the packet is of malicious nature
+\item If a malicious flow is detected, it can be stopped quickly
+\item Subsequent mischief can be prevented by punishment or expulsion
+\end{itemize}
 
 Accountability would thus be a welcomed trait in the Internet, as it can greatly help to stop and even prevent attacks. What is needed to provide such accountability is some efficient way to verify the alleged identity of a source, something that is not done directly on the network layer of today's internet. 
 
@@ -75,9 +83,11 @@ Approaches to fix these shortcomings exist, but many of them come with their own
 
 %There are a lot of cool papers. AIP must be explained, maybe IPA or Mirkovic and Reiher as a second approach (or even both?).
 \subsection{Accountable Internet Protocol}
+\label{sec:aip}
 Andersen et al. propose AIP \cite{aip}, the \emph{Accountable Internet Protocol}, as a replacement for the current IP. Hosts and domains using AIP are enabled to prove their identity without the need for an external trusted authority.
 
 \subsubsection{Basic design}
+\label{sec:aipbd}
 
 In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of a simpler multi component address. Each independently administered network gets divided into one or more \emph{accountability domains} (ADs) by its administrative unit, providing each AD with a globally unique identifier. Likewise, every end host must be provided a globally unique EID identifier, leading to an address scheme of \texttt{AD:EID}. In case of need for hierarchically organized accountability domains, the scheme can be extended to \texttt{AD$_1$:AD$_2$:\ldots:AD$_k$:EID}. Furthermore, if a host connects to an accountability domain via multiple network interfaces, each interface is provided its own EID by altering the \emph{interface bits} -- the last eight bits of the EID.
 
@@ -102,12 +112,35 @@ Now, when an end point tries to send a packet, it is the first-hop router's duty
 
 \section{Privacy}
 \label{sec:priv}
+\cite{blind} \cite{tor}
 \subsection{Tor instead of IP}
 \subsection{end-to-end encryption}
 \subsection{NAT}
 
 \section{Accountable and Private Internet Protocol}
 \label{sec:apip}
+
+With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption.
+
+\subsection{Addressing and packet flow}
+
+In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three components of such an address are as follows:
+\begin{itemize}
+\item \emph{network id} \texttt{NID}: used to identify the correct domain
+\item \emph{host id} \texttt{HID}: used to find the host inside of it's domain. The \texttt{HID} is assumed to be self-certifying, as explained in section \ref{sec:aipbd}
+\item \emph{socket id} \texttt{SID}: to further specify the host's socket used for the packet
+\end{itemize}
+Notice that this doesn't make any assumptions about the underlying protocol, but rather is a generic addressing scheme which is applicable to most protocols. For example, when applied to IP, \texttt{NID} and \texttt{HID} are represented by an IP address while \texttt{SID} corresponds to the port number. However, the assumption about the \texttt{HID} being self-certifying must be relaxed to accommodate APIP with IP, which in turn leads to the need for a Public-Key-Infrastructure.
+
+Depending on it's type, each packet uses either two or three APIP addresses. The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected.
+
+\subsection{Accountability mechanism}
+
+\subsection{Privacy mechanism}
+
+\subsection{Evaluation}
+
+\subsubsection{Performance}
 
 \section{Summary}
 
