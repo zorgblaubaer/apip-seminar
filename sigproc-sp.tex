@@ -112,7 +112,7 @@ Now, when an end point tries to send a packet, it is the first-hop router's duty
 
 \section{Privacy}
 \label{sec:priv}
-\cite{blind} \cite{tor}
+\cite{blind} \cite{tor} \cite{lap}
 \subsection{Tor instead of IP}
 \subsection{end-to-end encryption}
 \subsection{NAT}
@@ -122,6 +122,8 @@ Now, when an end point tries to send a packet, it is the first-hop router's duty
 
 With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption.
 
+The basic idea that enables APIP to have that functionality is to separate the accountability address from the return address. It is now no longer necessary to know who sent a packet to be able to verify that it is accounted for, since this is done exclusively with the accountability delegate.
+
 \subsection{Addressing and packet flow}
 
 In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three components of such an address are as follows:
@@ -130,9 +132,17 @@ In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three compon
 \item \emph{host id} \texttt{HID}: used to find the host inside of it's domain. The \texttt{HID} is assumed to be self-certifying, as explained in section \ref{sec:aipbd}
 \item \emph{socket id} \texttt{SID}: to further specify the host's socket used for the packet
 \end{itemize}
-Notice that this doesn't make any assumptions about the underlying protocol, but rather is a generic addressing scheme which is applicable to most protocols. For example, when applied to IP, \texttt{NID} and \texttt{HID} are represented by an IP address while \texttt{SID} corresponds to the port number. However, the assumption about the \texttt{HID} being self-certifying must be relaxed to accommodate APIP with IP, which in turn leads to the need for a Public-Key-Infrastructure.
+Notice that this doesn't make any assumptions about the underlying protocol, but rather is a generic addressing scheme which is applicable to most protocols. For example, when applied to IP, \texttt{NID} and \texttt{HID} are represented by an IP address while \texttt{SID} corresponds to the port number. However, the assumption about the \texttt{HID} being self-certifying must be relaxed to accommodate APIP with IP, which in turn leads to the need for a Public-Key-Infrastructure. 
 
-Depending on it's type, each packet uses either two or three APIP addresses. The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected.
+Depending on it's type, each packet uses either two or three APIP addresses. The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, which is pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected and is not needed otherwise.
+
+An implication of this approach is that flow IDs might not be fine granular enough if a single accountability delegate vouches for several clients, but this can be fixed by either using distinct SIDs for every client and/or by adding a flow ID field to the packet header. How this is handled does have an impact on both privacy and flow control; while just allocating the same flow ID to every client might provide maximum anonymity, it can also lead to a lot of non-malicious traffic being blocked when only a single client misbehaves. Then again, assigning a unique flow ID to every client might provide very fine flow control but it also makes it easy to map traffic to specific senders. A good trade off between these extremes is posed by assigning each client not a single unique flow ID but a pool of enough flow IDs to ensure a sufficient level of anonymity. 
+
+The verification process is somewhat similar to AIP, but additionally adds a level of indirection: When sending a package, the sender also informs it's accountability delegate about said package by calling the delegate's \texttt{brief(packet, clientID)} interface. Any on-path router as well as the packet's receiver can act as a verifier by calling the delegate's \texttt{verify(packet)} interface. Verifiers are than free to filter traffic that can not be verified and furthermore use the delegate's \texttt{shutoff(packet)} interface to permanently keep the delegate from vouching for a specific flow.
+
+\subsubsection{Brief()}
+\subsubsection{Verify()}
+\subsubsection{Shutoff()}
 
 \subsection{Accountability mechanism}
 
