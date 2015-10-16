@@ -33,6 +33,7 @@
 \makeatother
 
 \usepackage{tabularx}
+\usepackage{url}
 
 \begin{document}
 
@@ -115,6 +116,7 @@ Now, when an end point tries to send a packet, it is the first-hop router's duty
 \section{Privacy}
 \label{sec:priv}
 \cite{blind} \cite{tor} \cite{lap}
+
 \subsection{Tor instead of IP}
 \subsection{end-to-end encryption}
 \subsection{NAT}
@@ -160,13 +162,69 @@ Instead of using the aforementioned briefing mechanism, it is also possible to d
 When a packet passes a router, it checks whether the packet's flow ID has already been verified during the current \emph{verification interval}. At the end of each interval all verifications get purged. If it has not yet been verified, the router will verify the packet with the accountability delegate specified in the header and may choose to drop the packet and inform the sender about the ongoing verification process. The accountability delegate than checks whether the packet in question has been briefed by it's sender, the used \texttt{SID} is associated with the sender the connection between sender and receiver has not been blacklisted with a call to \texttt{shutoff()}. In case that all three conditions are met, the verifier adds the flow to it's whitelist for the current verification interval.
 
 \subsubsection{Shutoff()}
-As previously mentioned, 
+As previously mentioned, receivers can use a call to \texttt{shutoff()} to tell an accountability delegate that they do not wish to further receive transmissions from one of their clients. In addition to blacklisting and thus preventing the client from sending to this particular receiver, the delegate may contact its client about the malicious traffic that is coming from him to work on a solution. Depending on whether the client is a victim himself (i.e., is compromised by a bot net) or was sending malicious traffic on purpose, the delegate might even withdraw from their contract and/or report him if he is breaking law.
 
 \subsection{Privacy mechanism}
+In APIP, privacy is achieved by masking the return address used in the protocol's header information. Since the return address is not needed when forwarding packets, nor for APIP's accountability mechanism, various masking techniques can be applied, depending on who it shall be hidden from. While APIP does not dictate any specific techniques, the authors give two examples:
+\begin{enumerate}
+\item \textbf{End-to-end Encryption} hides the return address from everyone but the receiver. This could either be done directly on the network layer or be moved higher up like it is done in IPsec. 
+\item \textbf{Network Address Translation} can be used to hide the sender's address not only from the network, but also from the receiver. This is not a problem since this does not affect accountability. However, it must be considered that this will narrow down the anonymity set, especially so if NAT is only done at the first hop.
+\end{enumerate}
+An obvious way to increase privacy in APIP is to drop the return address altogether for packets that do not necessitate them or only send it with the first packet of a flow and rely on the receiver to save it for later reuse.
+
+\subsection{Weaknesses}
+The shortcomings of APIP mainly stem from the dependency for trustworthy accountability delegates. A trustworthy delegate will perform three main duties free of failure:
+\begin{itemize}
+\item Protect its clients' privacy
+\item Verify packets that has been briefed for, and only these
+\item Reacting correctly to \texttt{shutdown()} calls 
+\end{itemize}
+Not only can delegates gather (and possibly release) a lot of data about each of its clients communication partners (albeit they only see the packet headers and never the packet contents), but it can also go rogue by deliberately not verifying any packets from a chosen client, effectively blocking communication for him, or by verifying packets that where not briefed for and ignoring calls to \texttt{shutdown()}.
+
+To combat misbehaving delegates, the authors propose to have a central authority which monitors a list of trusted delegates. Verifiers should only accept packets with a whitelisted accountability address and rogues are simply removed. If the central authority is realized in a way that ensures that everyone can trust them this is an acceptable solution. Otherwise this approach is just chasing its own tail.
+
+The alternative to allow every host to behave as an accountability delegate for itself (like in AIP) or anyone else seems to be worse, since it leaves doors wide open for botnet attacks, whose prevention are one of the main motivations of APIP. However, the authors admit that there needs to be further discussion on this topic and a feasible solution probably lies somewhere in between.
+
+\subsubsection{Flooding Attacks}
+APIP is prone to two different kinds of flooding attacks:
+\begin{itemize}
+\item \emph{Verification-Flooding} There is not really anything preventing hosts from flooding delegates with verification requests. Only the delegate can decide which requests are forged and which are honest. Delegates will need an efficient way to inform the attacker's source domain about misbehaving hosts.
+\item \emph{Brief-Flooding} In an analogous manner, clients can occupy their delegate by spamming them with briefs. To differentiate attacks from very active clients, delegates could enforce rules like only sending bloom filter periodically if their briefs reach a certain threshold.
+\end{itemize}
 
 \subsection{Evaluation}
+\begin{table*}[t]
+	\label{tab:evalcomparison}
+	\newcolumntype{L}{>{\left}X}
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabularx}{\textwidth}{lXXX}
+		\hline 
+ 		& \textbf{Computational Overhead} & \textbf{Storage Overhead} & \textbf{Bandwidth Overhead} \\ \hline
+		\texttt{brief()} & 2-3 hashes p.p. (per packet) & 20 bytes p.p. & 2.5\% \\ 
+		\texttt{brief()} bloom filters & 2-3 hashes p.p. & one bloom filter per client & 0.25\%-0.5\% \\ 
+		\texttt{verify()} & $\le$78.000 lookups in table with 1.5 million entries at a 10 second purge interval & 120 bytes per flow, $\le$94MB at a 10 second purge interval & \\ 
+		\hline
+	\end{tabularx}
+	\caption{Computational, storage and bandwidth overhead for APIP's main functions \texttt{brief()} with and without using bloom filters, and \texttt{verify()}.}
+\end{table*}
+When considering the use of APIP in a real world scenario, we need to know how well it performs. How much overhead does it introduce in regards of computational power, storage and bandwidth? To answer these questions, the authors took a 5 minute trace with NetFlow from the border routers of their university network, gathering ten million flows, and extrapolated APIP's overhead from this data set. Unfortunately, they only call the network 'mid-sized', without stating a specific network size.
 
-\subsubsection{Performance}
+\subsubsection{Brief()}
+The overhead of \texttt{brief()} is heavily dependent on whether raw fingerprints are sent or they are being aggregated as bloom filters before being sent. Regardless, clients will have to compute two hashes needed for every fingerprint. Additionally one more hash is needed for the computation of the MAC used in the \texttt{brief()}, totaling to 2-3 hashes depending on whether bloom filters are used and if they are, how many packets get briefed with a single filter. While this very reasonable for end hosts, it might not be so reasonable anymore for big servers, which could be slowed down or even topped out by the amount of hashes that must be computed for high packet numbers. Even high performing CPUs usually do not reach 100 MH/s \cite{hashes}, but ASICs used for mining cryptocurrencies are powerful enough to close this gap.
+
+Since briefs are only saved at the accountability delegates, overhead will only happen there. The amount of space that is needed depends on the chosen expiration interval as well as whether bloom filters are used or not. For saving the plain fingerprints 20 bytes are needed per packet, which is the size of the corresponding SHA-1 hash. With bloom filters the demand for storage can be narrowed down to a single filter per client.
+
+Analogously, bandwidth overhead stays much lower when bloom filters are used; an overhead of 2.5\% for sending fingerprints can be reduced to 0.25\%-0.5\% with the use of filters, assuming that a new filter is sent out every second. However, the recorded trace did not include local addresses, making filtering on a per flow basis rather than per client necessary. A real world number could thus be even lower for the variant using filters.
+
+\subsubsection{Verify()}
+Verification overhead is happening in the form of computational overhead at the delegates and as storage overhead at the verifying routers. Both is dependent on the chosen verification interval: while storage overhead (and also the time until a \texttt{shutoff()} takes effect) grows with interval length, delegates get to respond to less calls to \texttt{verify()}. The gathered data suggests that an interval length of ten seconds is a good trade off, since most flows aren't longer than this (making re-verification of most flows unnecessary) and it is still short enough to keep storage requirements at verifiers reasonable.
+
+At a ten second interval length, given the recorded trace, delegates would process $\le$78.000 \texttt{verify()}s a second, leading to that many lookups in a table with 1.5 million entries, checking for the corresponding \texttt{brief()}, and a single signature generation for signing the response each. Considering that those numbers assume that the whole university network incorporates only a single accountability delegate this sounds acceptable, but without knowledge of the exact network size it is hard to discuss this.
+
+The storage overhead at verifiers stems from the need to maintain whitelists about flows that have already been verified. Each entry in a whitelist accommodates two host addresses of the known form \texttt{NID:HID:SID}. To comply with the assumption that addresses are self-certifying, the addresses are assumed to be three times the size of a SHA-1 hash (which is 20 bytes), leading to a size of 120 bytes per whitelist entry. For the recorded data and a ten second interval for purging the list, storage requirements are $\le$94 MB for every verifier.
+
+\subsubsection{Shutoff()}
+Since a \texttt{shutoff()} only takes effect for a specific flow after at least one whitelist on the route has been purged, the delay scales linearly with interval length and can be reduced by forcing more routers to verify traffic.
 
 \section{Summary}
 
