@@ -58,9 +58,9 @@ The history of the modern Internet as we know it today goes back as far as the e
 
 The way these technologies are designed is heavily reflecting the challenges that were of importance at that time -- namely "the creation of a distributed communication network that is robust against packet loss and other network failures; support across multiple types of networks and communication services; and the management of Internet resources in a cost-effective and distributed way" \cite{mot}.
 
-As time went by and the Internet began to grow bigger and bigger, new challenges that where not incorporated into the original design arose. The following work will focus on two of the biggest of those: accountability and privacy.
+As time went by and the Internet began to grow bigger and bigger, new challenges that where not incorporated into these original design goals arose. The following work will focus on two of the biggest of those: accountability and privacy.
 
-While there is already a plethora of technologies, that enable for varying levels of privacy, e.g., Tor, NAT and the likes, accountability is on a completely different page. Not only is accountability hard to guarantee, but it tends to be mutually exclusive with privacy. This is largely due to the fact that the first usually means strengthening sources addresses while the latter usually means weakening them \cite{apip}.
+While there is already a plethora of technologies in use that enable for varying levels of privacy, e.g., Tor and NAT, accountability is on a completely different page. Not only is accountability hard to guarantee, but it tends to be mutually exclusive with privacy. This is largely due to the fact that the first usually means strengthening sources addresses while the latter usually means weakening them \cite{apip}.
 
 To delve deeper into these topics, section~\ref{sec:acc} explains what accountability is, why it is needed and by whom and present some recent research projects while section~\ref{sec:priv} does the same for privacy. Furthermore, section~\ref{sec:apip} presents the \emph{Accountable and Private Internet Protocol}, a recent attempt at creating a solution that balances between accountabilty and privacy \cite{apip}.
 
@@ -115,18 +115,33 @@ Now, when an end point tries to send a packet, it is the first-hop router's duty
 
 \section{Privacy}
 \label{sec:priv}
-\cite{blind} \cite{tor} \cite{lap}
+Privacy in the Internet that everyone of us uses day to day has increasingly come into the spotlight during the past years. Even more so since the 2013 global surveillance disclosure initiated by whistle blower Edward Snowden, which has unprecedentedly shown how bad the situation really is.
 
+The "I've Got Nothing To Hide" argument often heard in this context is a fallacy that stems from the misunderstanding that privacy is the hiding of a wrong \cite{solove}. Imagining an Internet without privacy, it would for example be conceivable that health insurances higher their premium for insurance holders who look up certain diseases or, say, order a book on cancer in one week and a wig in the next one.
+
+Mechanisms to protect a users privacy on a network level are manifold and so are their modes of operation. Most of them focus on the two main characteristics of privacy: anonymity and security. Anonymity is granted when an entity is unidentifiable within other entities, building an \emph{anonymity set}. Security, on the other hand, requires the data sent over a network to be masked from eavesdroppers, which is usually done via encryption. Solution that provide either one or both of these characteristics exist; Some more commonly used are the following:
+\begin{itemize}
+\item \textbf{Proxy servers} let you route traffic over them, which will hide your IP address from simple checks but do not provide any privacy beyond.
+\item \textbf{Virtual Private Networks} (VPNs) provide a fully encrypted tunnel to the internet and thus a maximum of anonymity and security. They can however be slow and users' real privacy is depends on the discretion of the VPN's provider.
+\item \textbf{Onion Routing} redirects traffic over a random route of proxies, accessed over so called rendezvous points. The data is encrypted several times by the client and each proxy \emph{peals off} one encryption, like the layers of an onion. Analogously, responses are getting encrypted once by each proxy and can than be decrypted by the client. Online Routing, while a little bit slow, is considered relatively secure. Research has unveiled quiet a few possible attacks and weaknesses, many of which are based on controlling the first and the last proxy in an onion route. A popular example implementation of onion routing is Tor.
+\end{itemize}
 \subsection{Tor instead of IP}
-\subsection{end-to-end encryption}
-\subsection{NAT}
+Liu et al. propose using Tor not on top of IP, but instead of IP \cite{tor}. In their approach, ISPs still build the foundation of the network, each managing its own domain and relationships to each other. What differs from the traditional Internet is that the \emph{Border Gateway Protocol} (BGP) gets replaced by onion routers and rendezvous mailboxes, what leads to all communication on the network being over onion routes, without exception.
+
+ISPs advertise pathlets \cite{pathlet} of the form \texttt{<ingress ISP, transit ISP, egress ISP>} for pairs of neighboring ISPs. End hosts then define a path for their packets using these triplets and a mailbox address. The actual onion routing is done by zigzagging in the so called core network, which consists only of the biggest ISPs, which can handle the bandwidth overhead better than smaller ISPs. Packets that do not need anonymity simply do not zigzag in the core.
+
+While this approach provides a high amount of anonymity to every host on the Internet, this is probably also its biggest drawback. It disposes the Internet of any accountability mechanism and makes censorship hard, two traits that are unlikely to persuade ISPs and governments to deviate from IP, thus leaving Tor instead of IP to be a neat thought experiment.
+\subsection{Lightweight Anonymity and Privacy}
+To close the gap between system that provide slow but strong anonymity, like Tor or mix networks, and not using any privacy enhancement at all, Hsiao propose \emph{Lightweight Anonymity and Privacy} (LAP) \cite{lap}. The authors aim for masking the identity against servers (rather than globally, as Tor, etc. do) while introducing as little latency as possible in return.
+\subsection{BLIND}
+\cite{blind}  
 
 \section{Accountable and Private Internet Protocol}
 \label{sec:apip}
 
 With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption.
 
-The basic idea that enables APIP to have that functionality is to separate the accountability address from the return address. It is now no longer necessary to know who sent a packet to be able to verify that it is accounted for, since this is done exclusively with the accountability delegate.
+Accountability, as we have seen, usually comes with a strengthened source address while privacy implicates weakened or masked source addresses. The basic idea that enables APIP to cater the needs of both functionalities is to separate the source address into an accountability address and a return address. It is now no longer necessary to know who sent a packet in order to be able to verify that it is accounted for, since verification is done exclusively with the help of the accountability delegate.
 
 \subsection{Addressing and packet flow}
 
