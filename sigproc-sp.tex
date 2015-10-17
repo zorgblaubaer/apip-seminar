@@ -71,9 +71,9 @@ To delve deeper into these topics, section~\ref{sec:acc} explains what accountab
 %%
 
 \section{Accountability}
-\cite{bootstrapping} \cite{mirkovic}
+%\cite{mirkovic}
 \label{sec:acc}
-A lot of crime and chaos in the real world is being prevented because we have mechanisms in place that associate distinct persons or group of persons with actions, making everyone accountable for most of what they are doing. The Internet, as we have it today, is largely devoid of such mechanisms. Techniques like source IP spoofing can give everyone easy anonymity and enables for malicious actions such as denial of service attacks without having to fear any consequences.
+A lot of crime and chaos in the real world is being prevented because we have mechanisms in place that associate distinct persons or groups of persons with actions, making everyone accountable for most of what they are doing. The Internet, as we have it today, is largely devoid of such mechanisms. Techniques like source IP spoofing can give everyone easy anonymity and enables for malicious actions such as denial of service attacks without having to fear any consequences.
 
 Naylor et al. \cite{apip} define three key properties that must be fulfilled in an accountable internet:
 \begin{itemize}
@@ -84,7 +84,11 @@ Naylor et al. \cite{apip} define three key properties that must be fulfilled in 
 
 Accountability would thus be a welcomed trait in the Internet, as it can greatly help to stop and even prevent attacks. What is needed to provide such accountability is some efficient way to verify the alleged identity of a source, something that is not done directly on the network layer of today's internet. 
 
-Approaches to fix these shortcomings exist, but many of them come with their own shortcomings, rendering them not ideal for real world deployment, e.g., complicated mechanisms changing "the free-access model of the Internet", the need for external sources of trust, or the need for manual filtering by network operators \cite{aip}.
+But accountability is not only interesting in the light of malicious attacks; without accountability it is hard to securely identify why and because of whom network errors are caused. If this was changed, it could enable ISPs to trace out liabilities far more exact and at the same time force them to try harder to fulfill them \cite{mot}. 
+
+Approaches to fix the lack of accountability in the Internet do exist, but many of them come with their own shortcomings, rendering them not ideal for real world deployment, e.g., complicated mechanisms changing "the free-access model of the Internet", the need for external sources of trust, or the need for manual filtering by network operators \cite{aip}.
+
+%With IPA, \emph{IP made Accountable}, Li et al. propose using DNSSEC as a lightweight PKI \cite{bootstrapping} 
 
 \subsection{Accountable Internet Protocol}
 \label{sec:aip}
@@ -141,6 +145,7 @@ To close the gap between systems that provide slow but strong anonymity -- like 
 LAP uses encrypted paths, which they call \emph{e-paths}, instead of source and destination addresses; the first-hop router encrypts the source address and the egress interface's address and forwards it. The next hop router encrypts his ingress and egress address, appends the encrypted information to the e-path and forwards it. This procedure is repeated until the destination host is reached and the established route can then be used for packet forwarding. The level of anonymity granted (and with it the resulting latency) depends on the length of the e-path. Hosts can use the header field HTE (Hop To Encrypt) to regulate how many hops should be encrypted.
 
 LAP is good at what it is designed for -- granting users anonymity to everyone but the own ISP -- and does so in a fast enough and uncomplicated way to qualify as an always on solution and the authors even describe how it can be deployed on top of IP. However, in use cases where anonymity against the own ISP plays a role, LAP is not applicable.
+
 \subsection{BLIND}
 \cite{blind}  
 
