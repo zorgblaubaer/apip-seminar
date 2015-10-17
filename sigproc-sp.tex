@@ -97,7 +97,7 @@ Andersen et al. propose AIP \cite{aip}, the \emph{Accountable Internet Protocol}
 \subsubsection{Basic design}
 \label{sec:aipbd}
 
-In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of a simpler multi component address. Each independently administered network gets divided into one or more \emph{accountability domains} (ADs) by its administrative unit, providing each AD with a globally unique identifier. Likewise, every end host must be provided a globally unique EID identifier, leading to an address scheme of \texttt{AD:EID}. In case of need for hierarchically organized accountability domains, the scheme can be extended to \texttt{AD$_1$:AD$_2$:\ldots:AD$_k$:EID}. Furthermore, if a host connects to an accountability domain via multiple network interfaces, each interface is provided its own EID by altering the \emph{interface bits} -- the last eight bits of the EID.
+In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of a simpler multi component address. Each independently administered network -- typically that is the network of an ISP -- gets divided into one or more \emph{accountability domains} (ADs) by its administrative unit, providing each AD with a globally unique identifier. Likewise, every end host must be provided a globally unique EID identifier, leading to an address scheme of \texttt{AD:EID}. In case accountability domains are hierarchically organized, the scheme can be extended to \texttt{AD$_1$:AD$_2$:\ldots:AD$_k$:EID}. Furthermore, if a host connects to an accountability domain via multiple network interfaces, each interface is provided its own EID by altering the \emph{interface bits} -- the last eight bits of the EID.
 
 \begin{figure}[h!]
 	\label{fig:aipadr}
@@ -111,11 +111,15 @@ In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of 
 	\caption{AIP addresses consist of a version number, a hash of a public key and an interface identifier 		(which is set to zero for accountability domains) \cite{aip}}
 \end{figure}
 
-This simplification of the addressing enables for \emph{self-certifying} addresses: the main part of the 160 bit long AIP address is simply a 144 bit long hash of the endpoint's respective accountability domain's public key (Figure \ref{fig:aipadr}).
+This simplification of the addressing enables for \emph{self-certifying} addresses: the main part of the 160 bit long AIP address is simply a 144 bit long hash of the endpoint's respective accountability domain's public key (Figure \ref{fig:aipadr}). The remaining 16 bits are divided into 8 bits denoting the version of AIP used (to cater for the need of improved cryptography methods as time goes by and existing methods get weakened) at the beginning of the address and the aforementioned 8 bit interface identifier at the end.
 
 \subsubsection{Verification}
+Now, when an end point tries to send a packet, it is the first-hop router's duty to verify the end point's identity. When a packet from a not-verified host arrives, the packet is dropped and the router replies with a \emph{verification packet} V. This packet is signed with a periodically created router specific secret. If the host that receives V has originally sent the packet (to verify this, hosts keep hashes of recently sent packets), it signs this packet with its private key and returns it to the router, which can now verify the sender's identity with the help of his public key and permits the sender to resend the dropped packet as well as subsequent packets.
 
-Now, when an end point tries to send a packet, it is the first-hop router's duty to verify the end point's identity. When a packet from a not-verified host arrives, the packet is dropped and the router replies with a \emph{verification packet} V. This packet is signed with a periodically created router specific secret. The sending host signs this packet as well, returns it to the router, which can now verify the sender's identity with the help of his private key, permitting the sender to resend the dropped packet as well as subsequent packets.
+As packets transit from AD \emph{A} to AD \emph{B}, the latter must decide whether he trusts \emph{A} to have verified the packet. If \emph{B} does not initially trust \emph{A}, he performs an uRPF (Unicast Reverse Path Forwarding) check. Should this fail as well, the router in \emph{B} drops the packet and verifies it with the source as if it was the sources first-hop router.
+
+\subsubsection{Shut-Off}
+In addition to AIP's inherent protection against source address spoofing, flooding attacks can be stopped by sending a \emph{shut-off packet} (SOP) to source hosts. Under the assumption that most flooding attacks are coming from compromised hosts and are not initiated by the legitimate owners of these hosts, smart network interface cards can install a filter blocking the malicious packets for an amount of time specified by the victim in its initial SOP.
 
 %%
 %% PRIVACY
@@ -146,8 +150,8 @@ LAP uses encrypted paths, which they call \emph{e-paths}, instead of source and 
 
 LAP is good at what it is designed for -- granting users anonymity to everyone but the own ISP -- and does so in a fast enough and uncomplicated way to qualify as an always on solution and the authors even describe how it can be deployed on top of IP. However, in use cases where anonymity against the own ISP plays a role, LAP is not applicable.
 
-\subsection{BLIND}
-\cite{blind}  
+%\subsection{BLIND}
+%\cite{blind}  
 
 %%
 %% APIP
@@ -257,6 +261,11 @@ The storage overhead at verifiers stems from the need to maintain whitelists abo
 
 \subsubsection{Shutoff()}
 Since a \texttt{shutoff()} only takes effect for a specific flow after at least one whitelist on the route has been purged, the delay scales linearly with interval length and can be reduced by forcing more routers to verify traffic.
+
+\subsection{Deploying APIP on top of IP}
+As mentioned before and despite its name, APIP is kept relatively generic and can be adapted to diverse carrier protocols. For a real world deployment it is the most interesting to see how it can be tailored to fit the predominant IP, a problem the authors offer a concrete design for.
+
+The beauty of said design is that end hosts are not aware that APIP is used. They send packets as they would usually and the work is done at the domains' gateway routers. The gateway routers translate the source address of outgoing packets, masking the return address and providing a accountability address at the same time. Briefs are kept locally and calls to \texttt{verify()} and \texttt{shutoff()} are processed directly at the gateway router. Since IP addresses are not self-certifying though, cryptographic keys must come from somewhere else.
 
 %%
 %% OUTRO
