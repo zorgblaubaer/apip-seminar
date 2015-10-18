@@ -34,6 +34,8 @@
 
 \usepackage{tabularx}
 \usepackage{url}
+\usepackage{graphicx}
+\usepackage{subfig}
 
 \begin{document}
 
@@ -135,8 +137,14 @@ Mechanisms to protect a users privacy on a network level are manifold and so are
 \begin{itemize}
 \item \textbf{Proxy servers} let you route traffic over them, which will hide your IP address from simple checks but do not provide any privacy beyond.
 \item \textbf{Virtual Private Networks} (VPNs) provide a fully encrypted tunnel to the internet and thus a maximum of anonymity and security. They can however be slow and users' real privacy is depends on the discretion of the VPN's provider.
-\item \textbf{Onion Routing} redirects traffic over a random route of proxies, accessed over so called rendezvous points. The data is encrypted several times by the client and each proxy \emph{peals off} one encryption, like the layers of an onion. Analogously, responses are getting encrypted once by each proxy and can than be decrypted by the client. Online Routing, while a little bit slow, is considered relatively secure. Research has unveiled quiet a few possible attacks and weaknesses, many of which are based on controlling the first and the last proxy in an onion route. A popular example implementation of onion routing is Tor.
+\item \textbf{Onion Routing} redirects traffic over a random route of proxies, accessed over so called rendezvous points. The data is encrypted several times by the client and each proxy \emph{peals off} one encryption (see Figure \ref{fig:tor}), like the layers of an onion. Analogously, responses are getting encrypted once by each proxy and can than be decrypted by the client. Online Routing, while a little bit slow, is considered relatively secure. Research has unveiled quiet a few possible attacks and weaknesses, many of which are based on controlling the first and the last proxy in an onion route. A popular example implementation of onion routing is Tor.
 \end{itemize}
+\begin{figure}[h]
+  \includegraphics[width=0.5\textwidth]{images/tor.png}
+  \caption{Visualisation of onion routing. At the source, the message starts with three mutually distinct encryptions. Then, each onion router that the packet passes peels off one encryption so that at the destination all onion routing related encryptions have been removed. \protect\footnotemark}
+  \label{fig:tor}
+\end{figure}
+\footnotetext{"Onion diagram" by English Wikipedia user HANtwister. Licensed under CC BY-SA 3.0 via Commons - \url{https://commons.wikimedia.org/wiki/File:Onion_diagram.svg}}
 \subsection{Tor instead of IP}
 Liu et al. propose using Tor not on top of IP, but instead of IP \cite{tor}. In their approach, ISPs still build the foundation of the network, each managing its own domain and relationships to each other. What differs from the traditional Internet is that the \emph{Border Gateway Protocol} (BGP) gets replaced by onion routers and rendezvous mailboxes, what leads to all communication on the network being over onion routes, without exception.
 
@@ -159,13 +167,21 @@ LAP is good at what it is designed for -- granting users anonymity to everyone b
 
 \section{Accountable and Private Internet Protocol}
 \label{sec:apip}
-
+\begin{figure}[t]
+  \includegraphics[width=0.48\textwidth]{images/apipoverview.PNG}
+  \caption{A High-Level overview of APIP. (1) The sender sends a packet with at least the accountability address filled out and if needed also a return address (which can be masked). (2) At the same time, the sender also briefs its accountability delegate about the sent packet. (3) On-path routers may check with the accountability delegate whether the packet is being vouched for by him and drop it otherwise. (4) Malicious flows can be reported to the corresponding delegate, who will then stop verifying packets belonging to the reported flow. (5) If packets await an answer, the receiver can demask the return address and use it as the destination address in its answer. \cite{apip}}
+  \label{fig:apipoverview}
+\end{figure}
 With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption.
 
 Accountability, as we have seen, usually comes with a strengthened source address while privacy implicates weakened or masked source addresses. The basic idea that enables APIP to cater the needs of both functionalities is to separate the source address into an accountability address and a return address. It is now no longer necessary to know who sent a packet in order to be able to verify that it is accounted for, since verification is done exclusively with the help of the accountability delegate.
 
 \subsection{Addressing and packet flow}
-
+\begin{figure}[h]
+  \includegraphics[width=0.5\textwidth]{images/apipaddressing.PNG}
+  \caption{In APIP, traditional souce addresses are split into a public accountability address (pointing to an accountability delegate) used for routing and verifying packets, and a return address pointing to the actual sender of the packet. That makes the return address optional and maskable. \cite{apip}}
+  \label{fig:apipaddressing}
+\end{figure}
 In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three components of such an address are as follows:
 \begin{itemize}
 \item \emph{network id} \texttt{NID}: used to identify the correct domain
@@ -174,7 +190,7 @@ In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three compon
 \end{itemize}
 Notice that this doesn't make any assumptions about the underlying protocol, but rather is a generic addressing scheme which is applicable to most protocols. For example, when applied to IP, \texttt{NID} and \texttt{HID} are represented by an IP address while \texttt{SID} corresponds to the port number. However, the assumption about the \texttt{HID} being self-certifying must be relaxed to accommodate APIP with IP, which in turn leads to the need for a Public-Key-Infrastructure. 
 
-Depending on it's type, each packet uses either two or three APIP addresses. The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, which is pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected and is not needed otherwise.
+Depending on it's type, each packet uses either two or three APIP addresses (see Figure \ref{fig:apipaddressing}). The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, which is pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected and is not needed otherwise.
 
 An implication of this approach is that flow IDs might not be fine granular enough if a single accountability delegate vouches for several clients, but this can be fixed by either using distinct SIDs for every client and/or by adding a flow ID field to the packet header. How this is handled does have an impact on both privacy and flow control; while just allocating the same flow ID to every client might provide maximum anonymity, it can also lead to a lot of non-malicious traffic being blocked when only a single client misbehaves. Then again, assigning a unique flow ID to every client might provide very fine flow control but it also makes it easy to map traffic to specific senders. A good trade off between these extremes is posed by assigning each client not a single unique flow ID but a pool of enough flow IDs to ensure a sufficient level of anonymity. 
 
@@ -183,16 +199,23 @@ An implication of this approach is that flow IDs might not be fine granular enou
 The verification process is somewhat similar to AIP, but additionally uses a level of indirection: When sending a package, the sender also informs it's accountability delegate about said package by calling the delegate's \texttt{brief(packet, clientID)} interface. Any on-path router as well as the packet's receiver can act as a verifier by calling the delegate's \texttt{verify(packet)} interface. Verifiers are than free to filter traffic that can not be verified and furthermore receivers can use the delegate's \texttt{shutoff(packet)} interface to permanently keep the delegate from vouching for a specific flow.
 
 \subsubsection{Brief()}
-Informing the accountability delegate about new packets is done by either briefing each packet individually with the transmission of the packet's fingerprint or by periodically briefing them in bulk with the transmission of a bloom filter of several fingerprints. The fingerprints themselves are of the following form:
+\begin{figure}[!tbp]
+  \centering
+  \subfloat[Fingerprint Collection]{\includegraphics[width=0.23\textwidth]{images/briefing-finger.PNG}\label{fig:briefa}}
+  \hfill
+  \subfloat[Recursive Verification]{\includegraphics[width=0.23\textwidth]{images/briefing-recursive.PNG}\label{fig:briefb}}
+  \caption{The two briefing techniques in APIP \cite{apip}}
+\end{figure}
+Informing the accountability delegate about new packets is done by either briefing each packet individually with the transmission of the packet's fingerprint (see Figure \ref{fig:briefa}) or by periodically briefing them in bulk with the transmission of a bloom filter of several fingerprints. The fingerprints themselves are of the following form:
 \begin{equation}
 F(P) = H(K_{SD_S} || P_{header} || H(P_{body} ))
 \end{equation}
 where $H$ is a cryptographic hash function and $K_{SD_S}$ is a symmetric key only known to the sender and the delegate.
 
-To circumvent the need for verification on the briefs, a token field is included in the briefs' header. This could for example be a hash chain of a shared secret between sender and delegate. The delegate will know that is has to look for this token, since briefs' accountability and destination addresses are identical.
+By default every packet sent in APIP must be verifyable. To circumvent the need for verification on the briefs, a token field is included in the briefs' header. This could for example be a hash chain of a shared secret between sender and delegate which is agreed upon when the client registers with the delegate. The delegate will know in which packets it has to look for this token, since briefs' accountability and destination addresses are identical; both point to the delegate itself.
 
 \paragraph{Recursive Verification}
-Instead of using the aforementioned briefing mechanism, it is also possible to do recursive verification and merely use the accountability delegate as a middleman. In this case, \texttt{brief()} is not used. Instead, the delegate forwards all calls to \texttt{verify()} to the packet's alleged sender who in turn has to decide whether he indeed sent the packet or not and respond accordingly to the delegate. While this approach saves network and storage overhead it also has a drawback; in order for this to work, every flow ID must be mapped to exactly one client, potentially reducing client anonymity.
+Instead of using the aforementioned briefing mechanism, it is also possible to do recursive verification and merely use the accountability delegate as a middleman (see Figure \ref{fig:briefb}). In this case, \texttt{brief()} is not used. Instead, the delegate forwards all calls to \texttt{verify()} to the packet's alleged sender who in turn has to decide whether he indeed sent the packet or not and respond accordingly to the delegate. While this approach saves network and storage overhead it also has a drawback; in order for this to work, every flow ID must be mapped to exactly one client, potentially reducing client anonymity.
 
 \subsubsection{Verify()}
 When a packet passes a router, it checks whether the packet's flow ID has already been verified during the current \emph{verification interval}. At the end of each interval all verifications get purged. If it has not yet been verified, the router will verify the packet with the accountability delegate specified in the header and may choose to drop the packet and inform the sender about the ongoing verification process. The accountability delegate than checks whether the packet in question has been briefed by it's sender, the used \texttt{SID} is associated with the sender the connection between sender and receiver has not been blacklisted with a call to \texttt{shutoff()}. In case that all three conditions are met, the verifier adds the flow to it's whitelist for the current verification interval.
@@ -263,6 +286,11 @@ The storage overhead at verifiers stems from the need to maintain whitelists abo
 Since a \texttt{shutoff()} only takes effect for a specific flow after at least one whitelist on the route has been purged, the delay scales linearly with interval length and can be reduced by forcing more routers to verify traffic.
 
 \subsection{Deploying APIP on top of IP}
+\begin{figure}
+  \includegraphics[width=0.5\textwidth]{images/apipoverip.PNG}
+  \caption{Example design for APIP over IP: (1) APIP-unaware host sends packet as he usually would. (2) The ISP's border router saves the packet's fingerprint and (3) translates the source address. (4) Receivers use \texttt{shutoff()} when receiving malicious packets, upon which border routers react. (5) Otherwise they respond to the packet, (6) the border router translates the destination address in the response back to the original senders address and forwards it back to him. \cite{apip}}
+  \label{fig:apipoverip}
+\end{figure}
 As mentioned before and despite its name, APIP is kept relatively generic and can be adapted to diverse carrier protocols. For a real world deployment it is the most interesting to see how it can be tailored to fit the predominant IP, a problem the authors offer a concrete design for.
 
 The beauty of said design is that end hosts are not aware that APIP is used. They send packets as they would usually and the work is done at the domains' gateway routers. The gateway routers translate the source address of outgoing packets, masking the return address and providing a accountability address at the same time. Briefs are kept locally and calls to \texttt{verify()} and \texttt{shutoff()} are processed directly at the gateway router. Since IP addresses are not self-certifying though, cryptographic keys must come from somewhere else.
