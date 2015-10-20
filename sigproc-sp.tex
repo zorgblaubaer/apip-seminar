@@ -64,7 +64,7 @@ As time went by and the Internet began to grow bigger and bigger, new challenges
 
 While there is already a plethora of technologies in use that enable for varying levels of privacy, e.g., Tor and NAT, accountability is on a completely different page. Not only is accountability hard to guarantee, but it tends to be mutually exclusive with privacy. This is largely due to the fact that the first usually means strengthening sources addresses while the latter usually means weakening them \cite{apip}.
 
-Now, lets delve a little deeper into these topics. Most of us really just want to have a good time online; read about interesting new things, stay in contact with our peers or even find new friends, play games, shop for new stuff or just enjoy our selves. But there are also others: spam is a prominent example we all know from our mailboxes and most have experienced not being able to access a favorite webpage due to denial of service attacks from botnets. A big enabler for malicious actions like that is the lack of accountability in the Internet we have right now. Attackers can simply spoof their IP address, making it hard to identify them and even harder to punish them. Section~\ref{sec:acc} will further examine ways to make hosts liable for their actions.
+Now, lets delve a little deeper into these topics. Most of us really just want to have a good time online; read about interesting new things, stay in contact with our peers or even find new friends, play games, shop for new stuff or just enjoy our selves. But there are also others: spam is a prominent example we all know from our mailboxes and most have experienced not being able to access a favorite webpage due to denial of service attacks from botnets. A big enabler for malicious actions like that is the lack of accountability in the Internet we have right now. Attackers can simply spoof their IP address, making it hard to identify them and even harder to punish them. It becomes clear that accountability is not necessarily or mainly a technical consideration, but bleeds heavily into the realms of social interaction and law. Section~\ref{sec:acc} will further examine ways to make hosts liable for their actions.
 
 When we look at the other end of the spectrum, there are good reasons why the average Internet user should want and should have a reasonable level of privacy, which usually comes with anonymity or cryptography. In section~\ref{sec:priv}, some of these reasons as well as common techniques will be highlighted.
 
@@ -82,6 +82,7 @@ But what if we want the best of both worlds? A topic rarely touched yet is how a
 A lot of crime and chaos in the real world is being prevented because we have mechanisms in place that associate distinct persons or groups of persons with actions, making everyone accountable for most of what they are doing. The Internet, as we have it today, is largely devoid of such mechanisms. Techniques like source IP spoofing can give everyone easy anonymity and enables for malicious actions such as denial of service attacks without having to fear any consequences.
 
 Naylor et al. \cite{apip} define three key properties that must be fulfilled in an accountable internet:
+
 \begin{itemize}
 \item For every packet there exists an entity that takes responsibility if the packet is of malicious nature
 \item If a malicious flow is detected, it can be stopped quickly
@@ -92,13 +93,13 @@ Accountability would thus be a welcomed trait in the Internet, as it can greatly
 
 But accountability is not only interesting in the light of malicious attacks; without accountability it is hard to securely identify why and because of whom network errors are caused. If this was changed, it could enable ISPs to trace out liabilities far more exact and at the same time force them to try harder to fulfill them \cite{mot}. 
 
-Approaches to fix the lack of accountability in the Internet do exist, but many of them come with their own shortcomings, rendering them not ideal for real world deployment, e.g., complicated mechanisms changing "the free-access model of the Internet", the need for external sources of trust, or the need for manual filtering by network operators \cite{aip}.
+Approaches to fix the lack of accountability in the Internet do exist, but many of them come with their own shortcomings, rendering them not ideal for real world deployment, e.g., complicated mechanisms changing "the free-access model of the Internet", the need for external sources of trust, or the need for manual filtering by network operators \cite{aip}. 
 
 %With IPA, \emph{IP made Accountable}, Li et al. propose using DNSSEC as a lightweight PKI \cite{bootstrapping} 
 
 \subsection{Accountable Internet Protocol}
 \label{sec:aip}
-Andersen et al. propose AIP \cite{aip}, the \emph{Accountable Internet Protocol}, as a replacement for the current IP. Hosts and domains using AIP are enabled to prove their identity without the need for an external trusted authority.
+Andersen et al. propose AIP \cite{aip}, the \emph{Accountable Internet Protocol}, as a replacement for the current IP. Hosts and domains using AIP are enabled to prove their identity without the need for an external trusted authority. While their approach certainly is not the be all and end all, it has gained a lot of popularity and spawned plenty followers \footnote{Cited 75 times by October 2015}.
 
 \subsubsection{Basic design}
 \label{sec:aipbd}
@@ -120,9 +121,14 @@ In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of 
 This simplification of the addressing enables for \emph{self-certifying} addresses: the main part of the 160 bit long AIP address is simply a 144 bit long hash of the endpoint's respective accountability domain's public key (Figure \ref{fig:aipadr}). The remaining 16 bits are divided into 8 bits denoting the version of AIP used (to cater for the need of improved cryptography methods as time goes by and existing methods get weakened) at the beginning of the address and the aforementioned 8 bit interface identifier at the end.
 
 \subsubsection{Verification}
+\begin{figure}[t]
+  \includegraphics[width=0.5\textwidth]{images/aipflow.PNG}
+  \caption{Flowchart showing the process for verifying a packet's source address \cite{aip}}
+  \label{fig:aipflow}
+\end{figure}
 Now, when an end point tries to send a packet, it is the first-hop router's duty to verify the end point's identity. When a packet from a not-verified host arrives, the packet is dropped and the router replies with a \emph{verification packet} V. This packet is signed with a periodically created router specific secret. If the host that receives V has originally sent the packet (to verify this, hosts keep hashes of recently sent packets), it signs this packet with its private key and returns it to the router, which can now verify the sender's identity with the help of his public key and permits the sender to resend the dropped packet as well as subsequent packets.
 
-As packets transit from AD \emph{A} to AD \emph{B}, the latter must decide whether he trusts \emph{A} to have verified the packet. If \emph{B} does not initially trust \emph{A}, he performs an uRPF (Unicast Reverse Path Forwarding) check. Should this fail as well, the router in \emph{B} drops the packet and verifies it with the source as if it was the sources first-hop router.
+As packets transit from AD \emph{A} to AD \emph{B}, the latter must decide whether he trusts \emph{A} to have verified the packet. If \emph{B} does not initially trust \emph{A}, he performs an uRPF (Unicast Reverse Path Forwarding) check. Should this fail as well, the router in \emph{B} drops the packet and verifies it with the source as if it was the sources first-hop router (see Figure \ref{fig:aipflow}).
 
 \subsubsection{Shut-Off}
 In addition to AIP's inherent protection against source address spoofing, flooding attacks can be stopped by sending a \emph{shut-off packet} (SOP) to source hosts. Under the assumption that most flooding attacks are coming from compromised hosts and are not initiated by the legitimate owners of these hosts, smart network interface cards can install a filter blocking the malicious packets for an amount of time specified by the victim in its initial SOP.
@@ -141,16 +147,20 @@ Privacy in the Internet that everyone of us uses day to day has increasingly com
 The "I've Got Nothing To Hide" argument often heard in this context is a fallacy that stems from the misunderstanding that privacy is the hiding of a wrong \cite{solove}. Imagining an Internet without privacy, it would for example be conceivable that health insurances higher their premium for insurance holders who look up certain diseases or, say, order a book on cancer in one week and a wig in the next one.
 
 Mechanisms to protect a users privacy on a network level are manifold and so are their modes of operation. Most of them focus on the two main characteristics of privacy: anonymity and security. Anonymity is granted when an entity is unidentifiable within other entities, building an \emph{anonymity set}. Security, on the other hand, requires the data sent over a network to be masked from eavesdroppers, which is usually done via encryption. Solution that provide either one or both of these characteristics exist; Some more commonly used are the following:
+
 \begin{itemize}
-\item \textbf{Proxy servers} let you route traffic over them, which will hide your IP address from simple checks but do not provide any privacy beyond.
-\item \textbf{Virtual Private Networks} (VPNs) provide a fully encrypted tunnel to the internet and thus a maximum of anonymity and security. They can however be slow and users' real privacy is depends on the discretion of the VPN's provider.
+\item \textbf{Proxy servers} let you route traffic over them, which will hide your IP address from simple checks but do not provide any privacy beyond. This is probably the most lightweight solution -- since the proxy server is not providing any encryption and is really just rerouting traffic to make it look like it is coming from the proxy, a single proxy can typically serve thousands of clients. They come in different flavors: very fast HTTP proxies that only accept HTTP traffic and the more generic SOCKS proxies, which are a little bit slower but accept arbitrary types of traffic.
+\item \textbf{Virtual Private Networks} (VPNs) provide a fully encrypted tunnel to the internet and thus a maximum of anonymity and security. They can however be slow and users' real privacy depends largely on the discretion of the VPN's provider. The best VPN does not help boosting your privacy if it keeps logs about all the traffic you tunnel through and makes these logs available to a third party. 
 \item \textbf{Onion Routing} redirects traffic over a random route of proxies, accessed over so called rendezvous points. The data is encrypted several times by the client and each proxy \emph{peals off} one encryption (see Figure \ref{fig:tor}), like the layers of an onion. Analogously, responses are getting encrypted once by each proxy and can than be decrypted by the client. Online Routing, while a little bit slow, is considered relatively secure. Research has unveiled quiet a few possible attacks and weaknesses, many of which are based on controlling the first and the last proxy in an onion route. A popular example implementation of onion routing is Tor.
+\item \textbf{Network Address Translation} (NAT) was originally developed to fight the scarcity of IP addresses. A router that is part of two networks can translate IP addresses in packet headers from the address space in the first network to a different address in the second network. If the router now for example maps many different addresses from the one network to a single address on the other, it thereby creates an anonymity set providing some degree of privacy its endhosts.
 \end{itemize}
+
 \begin{figure}[h]
   \includegraphics[width=0.5\textwidth]{images/tor.png}
   \caption{Visualisation of onion routing. At the source, the message starts with three mutually distinct encryptions. Then, each onion router that the packet passes peels off one encryption so that at the destination all onion routing related encryptions have been removed. \cite{tor-dia}}
   \label{fig:tor}
 \end{figure}
+Apart from these examples which are readily available for everyone who wants to increase their privacy in the Internet that have today, the question about how to improve the flawed design of the underlying network has been in the focus of many research projects in the past years. We are still far away from an ultimate answer, but the following examples might give an idea of the direction we are moving.
 \subsection{Tor instead of IP}
 Liu et al. propose using Tor not on top of IP, but instead of IP \cite{tor}. In their approach, ISPs still build the foundation of the network, each managing its own domain and relationships to each other. What differs from the traditional Internet is that the \emph{Border Gateway Protocol} (BGP) gets replaced by onion routers and rendezvous mailboxes, what leads to all communication on the network being over onion routes, without exception.
 
@@ -160,7 +170,12 @@ While this approach provides a high amount of anonymity to every host on the Int
 \subsection{Lightweight Anonymity and Privacy}
 To close the gap between systems that provide slow but strong anonymity -- like Tor or mix networks -- and zero latency systems that do not provide anonymity, Hsiao et al. propose \emph{Lightweight Anonymity and Privacy} (LAP) \cite{lap}. The authors aim for masking the identity against servers (rather than globally, as Tor, etc. do) while introducing as little latency as possible in return. 
 
-LAP uses encrypted paths, which they call \emph{e-paths}, instead of source and destination addresses; the first-hop router encrypts the source address and the egress interface's address and forwards it. The next hop router encrypts his ingress and egress address, appends the encrypted information to the e-path and forwards it. This procedure is repeated until the destination host is reached and the established route can then be used for packet forwarding. The level of anonymity granted (and with it the resulting latency) depends on the length of the e-path. Hosts can use the header field HTE (Hop To Encrypt) to regulate how many hops should be encrypted.
+\begin{figure}[t]
+  \includegraphics[width=0.48\textwidth]{images/epaths.PNG}
+  \caption{E-path discovery and data transportation in LAP \cite{lap}}
+  \label{fig:lap}
+\end{figure}
+LAP uses encrypted paths, which they call \emph{e-paths}, instead of source and destination addresses (see Figure \ref{fig:lap}); the first-hop router encrypts the source address and the egress interface's address and forwards it. The next hop router encrypts his ingress and egress address, appends the encrypted information to the e-path and forwards it. This procedure is repeated until the destination host is reached and the established route can then be used for packet forwarding. The level of anonymity granted (and with it the resulting latency) depends on the length of the e-path. Hosts can use the header field HTE (Hop To Encrypt) to regulate how many hops should be encrypted.
 
 LAP is good at what it is designed for -- granting users anonymity to everyone but the own ISP -- and does so in a fast enough and uncomplicated way to qualify as an always on solution and the authors even describe how it can be deployed on top of IP. However, in use cases where anonymity against the own ISP plays a role, LAP is not applicable.
 
@@ -178,9 +193,39 @@ LAP is good at what it is designed for -- granting users anonymity to everyone b
   \caption{A High-Level overview of APIP. (1) The sender sends a packet with at least the accountability address filled out and if needed also a return address (which can be masked). (2) At the same time, the sender also briefs its accountability delegate about the sent packet. (3) On-path routers may check with the accountability delegate whether the packet is being vouched for by him and drop it otherwise. (4) Malicious flows can be reported to the corresponding delegate, who will then stop verifying packets belonging to the reported flow. (5) If packets await an answer, the receiver can demask the return address and use it as the destination address in its answer. \cite{apip}}
   \label{fig:apipoverview}
 \end{figure}
-With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption.
+With the \emph{Accountable and Private Internet Protocol} (APIP) \cite{apip}, as the name suggests, Naylor et al. try to find a way to balance between the seemingly mutually exclusive properties accountability and privacy. To achieve this goal they borrow heavily from AIP (see section \ref{sec:aip}), but delegate the job of verifying identities to so called \emph{accountability delegates}. The way this is done opens up the possibility to mask ones return address and thus allows for the application of privacy preserving methods like end-to-end encryption and NAT.
 
-Accountability, as we have seen, usually comes with a strengthened source address while privacy implicates weakened or masked source addresses. The basic idea that enables APIP to cater the needs of both functionalities is to separate the source address into an accountability address and a return address. It is now no longer necessary to know who sent a packet in order to be able to verify that it is accounted for, since verification is done exclusively with the help of the accountability delegate.
+The authors argue that the way source addresses are used today creates an unnecessarily heavy overload. The roles they identify for the source address are:
+
+\begin{itemize}
+\item \textbf{Return Address} Its used as the destination in response packets
+\item \textbf{Sender Identity} Its used to track users on an application level
+\item \textbf{Error Reporting} Its used for routing ICMP error messages
+\item \textbf{Flow ID} Its one of the five values that define a TCP/IP connection 
+\item \textbf{Accountability} uRPF provides basic protection against IP spoofing and uses source addresses for this functionality
+\end{itemize}
+
+\begin{table*}[t]
+	\label{tab:sourcerole}
+	\newcolumntype{L}{>{\left}X}
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabularx}{\textwidth}{lllX}
+		\hline 
+ 		\textbf{Role} & \textbf{Where Used} & \textbf{Layer} & \textbf{Comments} \\ \hline
+		\emph{Return Address} & Destination & Transport & Not needed for routing to the destination, only used by the destination in response packets \\
+		\emph{Sender Identity} & Destination & Application & Not really done anymore, some webpage still do this to track users across sessions \\
+		\emph{Error Reporting} & Routers & Network & Used as a destination for ICMP error messages \\
+			& Destination & Network & \\
+		\emph{Flow ID} & Destination & Transport & Used by end-hosts to demultiplex flows \\
+			& Routers & Network & Routers distinguish flow for traffic monitoring and engineering \\
+		\emph{Accountability} & Routers & Network & More elaborate protocols like AIP use cryptographic source addresses for accountability \\
+			& Destination & Network & It must be possible to identify and shut down a malicious flow \\
+		\hline
+	\end{tabularx}
+	\caption{The roles a source address plays and where each is used \cite{apip}}
+\end{table*}
+
+Accountability, as we have seen, usually comes with a strengthened source address while privacy implicates weakened or masked source addresses. The basic idea that enables APIP to cater the needs of both functionalities is now that, in order to successfully route a packet to its destination, the return address role is never used (see table \ref{tab:sourcerole}) and can thus be separated from the rest. To achieve this, the source address gets split into an accountability address and a return address. It is now no longer necessary to know who sent a packet in order to be able to verify that it is accounted for, since verification is done exclusively with the help of the accountability delegate.
 
 \subsection{Addressing and packet flow}
 \begin{figure}[h]
@@ -188,12 +233,15 @@ Accountability, as we have seen, usually comes with a strengthened source addres
   \caption{In APIP, traditional souce addresses are split into a public accountability address (pointing to an accountability delegate) used for routing and verifying packets, and a return address pointing to the actual sender of the packet. That makes the return address optional and maskable. \cite{apip}}
   \label{fig:apipaddressing}
 \end{figure}
+
 In APIP, addresses are always of the form \texttt{NID:HID:SID}. The three components of such an address are as follows:
+
 \begin{itemize}
 \item \emph{network id} \texttt{NID}: used to identify the correct domain
 \item \emph{host id} \texttt{HID}: used to find the host inside of it's domain. The \texttt{HID} is assumed to be self-certifying, as explained in section \ref{sec:aipbd}
 \item \emph{socket id} \texttt{SID}: to further specify the host's socket used for the packet
 \end{itemize}
+
 Notice that this doesn't make any assumptions about the underlying protocol, but rather is a generic addressing scheme which is applicable to most protocols. For example, when applied to IP, \texttt{NID} and \texttt{HID} are represented by an IP address while \texttt{SID} corresponds to the port number. However, the assumption about the \texttt{HID} being self-certifying must be relaxed to accommodate APIP with IP, which in turn leads to the need for a Public-Key-Infrastructure. 
 
 Depending on it's type, each packet uses either two or three APIP addresses (see Figure \ref{fig:apipaddressing}). The two mandatory ones are the \emph{destination address} and the \emph{accountability address}, which is pointing to the accountability delegate. The optional third address is the \emph{return address}, which is used if a response to the packet is expected and is not needed otherwise.
@@ -218,22 +266,42 @@ F(P) = H(K_{SD_S} || P_{header} || H(P_{body} ))
 \end{equation}
 where $H$ is a cryptographic hash function and $K_{SD_S}$ is a symmetric key only known to the sender and the delegate.
 
+Furthermore, clients append their client ID and a message authentication code derived from the symmetric shared secret to the brief:
+\begin{equation}
+\texttt{brief(P)} + clientID || F(P) || MAC_{K_{{SD}_S}}(clientID || F(P))
+\end{equation}
 By default every packet sent in APIP must be verifyable. To circumvent the need for verification on the briefs, a token field is included in the briefs' header. This could for example be a hash chain of a shared secret between sender and delegate which is agreed upon when the client registers with the delegate. The delegate will know in which packets it has to look for this token, since briefs' accountability and destination addresses are identical; both point to the delegate itself.
 
 \paragraph{Recursive Verification}
 Instead of using the aforementioned briefing mechanism, it is also possible to do recursive verification and merely use the accountability delegate as a middleman (see Figure \ref{fig:briefb}). In this case, \texttt{brief()} is not used. Instead, the delegate forwards all calls to \texttt{verify()} to the packet's alleged sender who in turn has to decide whether he indeed sent the packet or not and respond accordingly to the delegate. While this approach saves network and storage overhead it also has a drawback; in order for this to work, every flow ID must be mapped to exactly one client, potentially reducing client anonymity.
 
 \subsubsection{Verify()}
-When a packet passes a router, it checks whether the packet's flow ID has already been verified during the current \emph{verification interval}. At the end of each interval all verifications get purged. If it has not yet been verified, the router will verify the packet with the accountability delegate specified in the header and may choose to drop the packet and inform the sender about the ongoing verification process. The accountability delegate than checks whether the packet in question has been briefed by it's sender, the used \texttt{SID} is associated with the sender the connection between sender and receiver has not been blacklisted with a call to \texttt{shutoff()}. In case that all three conditions are met, the verifier adds the flow to it's whitelist for the current verification interval.
+When a packet passes a router, it checks whether the packet's flow ID has already been verified during the current \emph{verification interval}. At the end of each interval all verifications get purged. If it has not yet been verified, the router will verify the packet with the accountability delegate specified in the packet header by sending 
+\begin{equation}
+\texttt{verify(P)} = P_{header} || H(P_body) || MAC_{K_V}(P_{header} || H(P_{body}))
+\end{equation}
+to the delegate. The router will typically choose to drop the unverified packet and inform the sender about the ongoing verification process. The accountability delegate than checks whether the packet in question has been briefed by it's sender, the used \texttt{SID} is associated with the sender and that the connection between sender and receiver has not been blacklisted with a call to \texttt{shutoff()}. In case that all three conditions are met, the verifier gets an affirmation packet 
+\begin{equation}
+OK(P) = \{\texttt{VERIFIED} || \texttt{verify(P)} || K^+_{D_S}\}_{K^-_{D_S}}
+\end{equation}
+from the delegate and adds the flow to it's whitelist for the current verification interval.
+
+Due to how the briefing and verification process works, it makes a lot of sense for ISPs to supply their clients with accountability delegates. This way network overhead and latency for briefing is limited to a minimum and it also provides the ISP with insight on the amount of unverified traffic a client is causing.
 
 \subsubsection{Shutoff()}
-As previously mentioned, receivers can use a call to \texttt{shutoff()} to tell an accountability delegate that they do not wish to further receive transmissions from one of their clients. In addition to blacklisting and thus preventing the client from sending to this particular receiver, the delegate may contact its client about the malicious traffic that is coming from him to work on a solution. Depending on whether the client is a victim himself (i.e., is compromised by a bot net) or was sending malicious traffic on purpose, the delegate might even withdraw from their contract and/or report him if he is breaking law.
+As previously mentioned, receivers can use a call to \texttt{shutoff()} to tell an accountability delegate that they do not wish to further receive transmissions from one of their clients, even if his packets are verifiable. The receiver sends a packet
+\begin{equation}
+\texttt{shutoff(P)} = \{P_{header} || H(P_{body}) || duration || K^+_R\}_{K^+_R}
+\end{equation}
+to the delegate that is vouching for packet $P$.
+
+In addition to blacklisting and thus preventing the client from sending to this particular receiver for the given duration, the delegate may contact its client about the malicious traffic that is coming from him to work on a solution. Depending on whether the client is a victim himself (i.e., is compromised by a bot net) or was sending malicious traffic on purpose, the delegate might even withdraw from their contract and/or report him if he is breaking law. While this mechanism is primarily meant to give receivers control over the sources they want to receive data from, it makes sense to open this is up in some way to higher authorities like ISPs.
 
 \subsection{Privacy mechanism}
 In APIP, privacy is achieved by masking the return address used in the protocol's header information. Since the return address is not needed when forwarding packets, nor for APIP's accountability mechanism, various masking techniques can be applied, depending on who it shall be hidden from. While APIP does not dictate any specific techniques, the authors give two examples:
 \begin{enumerate}
 \item \textbf{End-to-end Encryption} hides the return address from everyone but the receiver. This could either be done directly on the network layer or be moved higher up like it is done in IPsec. 
-\item \textbf{Network Address Translation} can be used to hide the sender's address not only from the network, but also from the receiver. This is not a problem since this does not affect accountability. However, it must be considered that this will narrow down the anonymity set, especially so if NAT is only done at the first hop.
+\item \textbf{Network Address Translation} can be used to hide the sender's address not only from the network, but also from the receiver. This is not a problem since this does not affect accountability. However, it must be considered that this will narrow down the anonymity set the closer the packet is to the source and will be especially small if NAT is only done at the first hop.
 \end{enumerate}
 An obvious way to increase privacy in APIP is to drop the return address altogether for packets that do not necessitate them or only send it with the first packet of a flow and rely on the receiver to save it for later reuse.
 
@@ -244,17 +312,17 @@ The shortcomings of APIP mainly stem from the dependency for trustworthy account
 \item Verify packets that has been briefed for, and only these
 \item Reacting correctly to \texttt{shutdown()} calls 
 \end{itemize}
-Not only can delegates gather (and possibly release) a lot of data about each of its clients communication partners (albeit they only see the packet headers and never the packet contents), but it can also go rogue by deliberately not verifying any packets from a chosen client, effectively blocking communication for him, or by verifying packets that where not briefed for and ignoring calls to \texttt{shutdown()}.
+Not only can delegates gather (and possibly release) a lot of data about each of its clients' communication partners (albeit they only see the packet headers and never the packet contents), but they can also go rogue by deliberately not verifying any packets from a chosen client, effectively blocking communication for him, or by verifying packets that where not briefed for and ignoring calls to \texttt{shutdown()}.
 
-To combat misbehaving delegates, the authors propose to have a central authority which monitors a list of trusted delegates. Verifiers should only accept packets with a whitelisted accountability address and rogues are simply removed. If the central authority is realized in a way that ensures that everyone can trust them this is an acceptable solution. Otherwise this approach is just chasing its own tail.
+To combat misbehaving delegates, the authors propose to have a central authority which monitors a list of trusted delegates. Verifiers should only accept packets with a whitelisted accountability address and delegates that fail to meet the authorities requirements are simply removed from the list. If the central authority is realized in a way that ensures that everyone can trust them this is an acceptable solution. If this can not be guaranteed, this approach is just chasing its own tail.
 
 The alternative to allow every host to behave as an accountability delegate for itself (like in AIP) or anyone else seems to be worse, since it leaves doors wide open for botnet attacks, whose prevention are one of the main motivations of APIP. However, the authors admit that there needs to be further discussion on this topic and a feasible solution probably lies somewhere in between.
 
 \subsubsection{Flooding Attacks}
-APIP is prone to two different kinds of flooding attacks:
+Trustworthiness of delegates is not the only security aspect that must be considered. More precisely, APIP is prone to two different kinds of flooding attacks:
 \begin{itemize}
-\item \emph{Verification-Flooding} There is not really anything preventing hosts from flooding delegates with verification requests. Only the delegate can decide which requests are forged and which are honest. Delegates will need an efficient way to inform the attacker's source domain about misbehaving hosts.
-\item \emph{Brief-Flooding} In an analogous manner, clients can occupy their delegate by spamming them with briefs. To differentiate attacks from very active clients, delegates could enforce rules like only sending bloom filter periodically if their briefs reach a certain threshold.
+\item \emph{Verification-Flooding} There is not really anything preventing hosts from flooding delegates with verification requests. Only the delegate can decide which requests are forged and which are honest. Delegates will need an efficient way to inform the attacker's source domain about misbehaving hosts. 
+\item \emph{Brief-Flooding} In an analogous manner, clients can occupy their delegate by spamming them with briefs. To differentiate attacks from very active clients, delegates could enforce rules like only sending bloom filter periodically if their briefs reach a certain threshold. Clients then have to agree to these rules when they sign up for a delegate's service and delegates are free to cancel contracts with clients that do not comply.
 \end{itemize}
 
 \subsection{Evaluation}
