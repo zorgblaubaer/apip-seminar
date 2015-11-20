@@ -112,10 +112,9 @@ In AIP, packets sent by end hosts get intercepted at the first-hop router for ve
 \subsubsection{Basic design}
 \label{sec:aipbd}
 
-In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of a simpler multi component address. Each independently administered network -- typically that is the network of an ISP -- gets divided into one or more \emph{accountability domains} (ADs) by its administrative unit, providing each AD with a globally unique identifier. Likewise, every end host must be provided a globally unique EID identifier, leading to an address scheme of \texttt{AD:EID}. In case accountability domains are hierarchically organized, the scheme can be extended to \texttt{AD$_1$:AD$_2$:\ldots:AD$_k$:EID}. Furthermore, if a host connects to an accountability domain via multiple network interfaces, each interface is provided its own EID by altering the \emph{interface bits} -- the last eight bits of the EID.
+In AIP, the transition to complex prefixed IP based addressing schemes is reverted in favor of a simpler multi component address. The usage of IP addresses gets completely removed and addressing is solely done over AIP. Each independently administered network -- typically that is the network of an ISP -- gets divided into one or more \emph{accountability domains} (ADs) by its administrative unit, providing each AD with a globally unique identifier. Likewise, every end host must be provided a globally unique EID identifier, leading to an address scheme of \texttt{AD:EID}. In case accountability domains are hierarchically organized, the scheme can be extended to \texttt{AD$_1$:AD$_2$:\ldots:AD$_k$:EID}. Furthermore, if a host connects to an accountability domain via multiple network interfaces, each interface is provided its own EID by altering the \emph{interface bits} -- the last eight bits of the EID.
 
 \begin{figure}[h!]
-	\label{fig:aipadr}
 	\newcolumntype{C}{>{\centering}X}
 	\begin{tabularx}{0.47\textwidth}{|c|C|c|}
 		\hline & & \\
@@ -123,10 +122,11 @@ In AIP, the transition to prefixed CIDR-style addresses is reverted in favor of 
 		8 bits & 144 bits & 8 bits \\ & & \\
 		\hline
 	\end{tabularx}
-	\caption{AIP addresses consist of a version number, a hash of a public key and an interface identifier 		(which is set to zero for accountability domains) \cite{aip}}
+	\caption{AIP addresses consist of a version number, a hash of a public key and an interface identifier (which is set to zero for accountability domains) \cite{aip}}
+	\label{fig:aipadr}
 \end{figure}
 
-This simplification of the addressing enables for \emph{self-certifying} addresses: the main part of the 160 bit long AIP address is simply a 144 bit long hash of the endpoint's respective accountability domain's public key (Figure \ref{fig:aipadr}). The remaining 16 bits are divided into 8 bits denoting the version of AIP used (to cater for the need of improved cryptography methods as time goes by and existing methods get weakened) at the beginning of the address and the aforementioned 8 bit interface identifier at the end.
+This simplification of the addressing enables for \emph{self-certifying} addresses: the main part of the 160 bit long AIP address is simply a 144 bit long hash of the endpoint's respective accountability domain's public key (Figure \ref{fig:aipadr}). The remaining 16 bits are divided into 8 bits denoting the version of AIP used (to cater for the need of improved cryptography methods when existing methods get weakened) at the beginning of the address and the aforementioned 8 bit interface identifier at the end.
 
 \subsubsection{Verification}
 \begin{figure}[t]
