@@ -1,0 +1,102 @@
+Review Form
+
+Please keep in mind that the review is meant to support the author with constructive and useful information that helps him/her to improve the quality of the paper. After reading your review, the author should know about the weaknesses of his/her paper and the author should also know how to fix these.
+Reviewing a paper requires careful preparation and reading. You might encounter parts of the paper that require to read additional literature (referenced in the paper) in order to understand them. Please have a look at this additional literature whenever necessary.
+-------------------------------------------
+
+Paper filename: HZ1_1.pdf
+
+Title of the paper: Accountability and Privacy in the Modern Internet
+
+---------
+Reviewer
+---------
+
+Knowledge (Your knowledge about the topic):
+( ) No previous knowledge
+( ) Little knowledge
+(X) Skilled
+( ) Expert
+
+------------
+Review
+------------
+
+Paper summary: Give a short summary of the contents of the paper and discuss the scientific aspects of the paper. [3-5 Sentences]
+The paper "Accountability and Privacy in the Modern Internet" deals with the topic of accountability of senders for data packets in the network, while privacy of senders should be maintained.
+Therefore, the paper at first discusses distinct solutions for accountability (such as AIP) and privacy (such as proxy servers, TOR etc.) and presents possible problems for merged solutions.
+Afterwards the Accountable and Private Internet Protocol (APIP), which tries to embed the best of both accountability and privacy, is discussed, and possible issues and an evaluation are shown.
+
+Paper strengths: What are the strengths of the paper. Mainly consider the content and the scientific quality of the paper. [3-5 Sentences]
+The author is able to motivate why the internet needs accountability and privacy.
+In addition, the structure supports the reader, as accountability and privacy are discussed distinctly at first and merged later on.
+Protocols and techniques are explained well in a useful order; The reader is able to follow most explanations easily.
+
+Paper weaknesses: What are the weaknesses of the paper. Mainly consider the content, structure, and the scientific quality of the paper. [3-5 Sentences]
+Some equations lack explanations and can be confusing.
+Moreover, very few sentences are complexly written and get too long.
+These sentences could be split up into two sentences.
+
+Presentation of the paper: Quality and clarity of the presentation
+( ) Difficult to follow, badly written, and unorganized
+( ) Some difficulties regarding structure and clarity
+(X) Well structured and well written with minor difficulties
+( ) Well structured and easy to read. Good presentation.
+
+Comments about the presentation of the paper: [at least two sentences per question]
+
+1. Is the paper well organized?
+The paper is clearly structured into steps. At first, accountability solutions and privacy solutions are explained independent. Eventual drawbacks from accountability to privacy and vice versa are shown.
+Afterwards it is explained how APIP tries to combine both and where APIP shows new drawbacks.
+
+2. Is there a clear structure that helps the reader to easily understand the contents of the paper?
+Yes, the paper is clearly structured helping the reader to understand. Explanations of accountability and privacy are already given in the motivating introduction.
+Due to the approach to discuss the two subtopics in different sections, the reader understands which problems may occur and has a better understanding for how APIP deals with these.
+
+3. Do parts of the paper require further explanation? Are some parts poorly written, blurry, or inaccurate? Are there any contradicting statements?
+The "Accountability mechanisms" (4.2) are explained broadly, but some equations lack explanations
+(e.g. K_{SD_{S}} is explained as a symmetric key for sender and delegate; but does the last subscript "S" stand for symmetric? but what is K^{+}_{D_{S}}? A symmetric public key ? ;) Reference 7 named its delegate D_S, but the author did not and this leads to confusion.)
+Also equation 5 is adopted in a wrong way, as it encrypts with the public key instead of the private key.
+
+4. Is the paper complete? Does it contain all necessary parts (Abstract, introduction, main part, presentation of results / discussion, conclusion)? Do these parts serve their purpose?
+yes, the paper is complete. It contains an abstract, an introduction, a main part, a presentation of results regarding an evaluation and a conclusion. All parts serve their purpose.
+
+5. Is the text structured into paragraphs and sections? Does this structure aid the reader?
+The text is well structured into paragraphs. Statements are clearly separated and help the reader to begin with a new statement.
+Moreover, the paper is also clearly structured into sections.
+
+6. Describe the quality of the language.
+The paper is mostly written in formal, academic english. Eventually, some sayings such as "makes sense" could be considered informal.
+Moreover, very few sentences are a little bit too long and need to be read again. In general, the paper complies with grammar, punctuation and spelling rules of the english language.
+
+7. Do the figures support the process of reading and understanding? Would further figures be useful/necessary?
+The figures support the reader. For example, Figure 5 helps understanding the briefing mechanisms.
+Further figures are not necessary.
+
+8. Describe the quality of the figures (Resolution, style, font size ...).
+The quality of the figures is good. The resolution is well chosen for printing; the text is clearly readable.
+Vector based graphics would be even better; the author could try Inkscape to export the vector images of the references or trace the originals.
+
+9. Is there a catchy/sensible caption for every figure? Are the figures mentioned in the text?
+Each figure has a catchy caption and is mentioned and described in the text.
+Some captions give even more information about the figure and explain these.
+
+10. Suggestions for improving the quality of the presentation.
+In general the paper is well presented.
+But section 4.3 (Privacy mechanism) is in comparison to section 4.2. a little bit too short.
+
+11. Are there references for all techniques, methods, protocols, etc. Is it clear where the statements/images/graphs have been taken from?
+Most protocols and terms regarding techniques or methods are referenced at least once. 
+Maybe a repetition of \cite{...} references after "the authors" in the text allow an easier attribution of statements.
+Also, the introduction of section 3 is a matter of argument, as details and issues about proxies, vpn etc. are given without references.
+
+12. Do the citations, references, and the references list comply with the usual standards?
+The citations and references comply with our standard reference stylesheet.
+The references list for websites lacks a lastvisited field.
+
+13. Is the paper correct? Are there any questionable or unjustifiably absolute statements?
+As far as the author of this review is able to tell, the paper is correct.
+Beside small problems in adoption of equations and statements, the statements are justifiable and seem to be not questionable.
+
+Further comments to the author. Please give further information that can help the author to improve the paper: [at least two sentences]
+Try to resolve the equationspart and it gets much clearer. Furthermore, try to avoid overlong sentences.
